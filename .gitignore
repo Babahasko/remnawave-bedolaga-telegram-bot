@@ -101,3 +101,6 @@ data/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Web-server
+Caddyfile
