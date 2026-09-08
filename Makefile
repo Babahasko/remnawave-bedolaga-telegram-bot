@@ -3,6 +3,11 @@ up: ## Поднять контейнеры (detached)
 	@echo "🚀 Поднимаем контейнеры (detached)..."
 	docker compose up -d --build
 
+.PHONY: up-caddy
+up-caddy: ## Поднять контейнеры с логами
+	@echo "📡 Поднимаем контейнеры (в консоли)..."
+	docker compose -f docker-compose.caddy.yml up -d && docker remnawave_caddy logs -f
+
 .PHONY: up-follow
 up-follow: ## Поднять контейнеры с логами
 	@echo "📡 Поднимаем контейнеры (в консоли)..."
