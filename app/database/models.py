@@ -2065,6 +2065,13 @@ class Tariff(Base):
     # Внешний сквад RemnaWave (UUID) — назначается пользователю при создании подписки
     external_squad_uuid = Column(String(255), nullable=True, default=None)
 
+    # Свой тег панельного пользователя для тарифа (A–Z, 0–9, _, до 16). Побеждает общие
+    # TRIAL_USER_TAG/PAID_SUBSCRIPTION_USER_TAG; None = общий тег из настроек.
+    panel_tag = Column(String(16), nullable=True, default=None)
+
+    # Дни триала на этом тарифе; None = глобальный TRIAL_DURATION_DAYS
+    trial_duration_days = Column(Integer, nullable=True, default=None)
+
     created_at = Column(AwareDateTime(), default=func.now())
     updated_at = Column(AwareDateTime(), default=func.now(), onupdate=func.now())
 
@@ -2087,6 +2094,25 @@ class Tariff(Base):
         """Возвращает цену в копейках для указанного периода."""
         prices = self.period_prices or {}
         return prices.get(str(period_days))
+
+    def has_configured_price_for_period(self, period_days: int) -> bool:
+        """Настроена ли цена этого периода — бесплатный (0 ₽) считается настроенным.
+
+        Признак верной настройки — наличие цены, а не её величина. Бесплатный
+        тариф в проекте штатный (см. ``is_free``), и бот продаёт его, проверяя
+        только наличие периода в ``period_prices``. Кабинет же считал нулевую
+        цену признаком поломанной конфигурации и отказывал в покупке тарифа,
+        который сам же показывал как «Бесплатно».
+
+        Непроставленная цена (``None``) настроенной не считается — это и есть
+        тот случай, ради которого проверка появилась.
+        """
+        if self.is_daily:
+            return period_days <= 1
+        prices = self.period_prices or {}
+        if prices.get(str(period_days)) is not None:
+            return True
+        return self.can_purchase_custom_days() and self.get_price_for_custom_days(period_days) is not None
 
     @property
     def is_free(self) -> bool:
