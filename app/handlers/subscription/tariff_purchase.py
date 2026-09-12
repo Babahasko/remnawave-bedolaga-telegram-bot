@@ -246,7 +246,7 @@ def get_tariffs_keyboard(
             title = f'{badge} · {tariff.name}'
         else:
             title = tariff.name
-        if tariff.id == 3 and 2 not in purchased_tariff_ids:
+        if tariff.id == 2 and 1 not in purchased_tariff_ids:
             ## Костыль: если базовый тариф не оплачен, кнопка Премиум - не добавляется.
             continue 
         buttons.append([InlineKeyboardButton(text=title, callback_data=f'tariff_select:{tariff.id}')])
